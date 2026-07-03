@@ -19,26 +19,21 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Логирование запросов (для разработки)
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
-// API Routes
 app.use('/api', routes);
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 404
 app.use((req, res) => {
   res.status(404).json({ message: 'Endpoint not found' });
 });
 
-// Error handling
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ message: 'Internal server error' });
@@ -47,7 +42,6 @@ app.use((err, req, res, next) => {
 
 const httpServer = createServer(app);
 
-// Инициализируем Socket.IO и привязываем его к HTTP-серверу
 const io = initSocket(httpServer);
 
 async function start() {

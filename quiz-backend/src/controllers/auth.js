@@ -73,7 +73,6 @@ export async function login(req, res) {
 
     const db = getDb();
 
-    // Поиск пользователя
     const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
     if (!user) {
       return res.status(401).json({ message: 'Неверные учетные данные' });

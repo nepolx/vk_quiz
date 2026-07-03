@@ -65,10 +65,17 @@ export async function initDb() {
       text TEXT NOT NULL,
       is_correct BOOLEAN DEFAULT 0,
       answer_order INTEGER,
+      image_url TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
     )
   `);
+
+  try {
+    await db.exec('ALTER TABLE answers ADD COLUMN image_url TEXT');
+  } catch (_) {
+    // Колонка уже существует - игнорируем ошибку
+  }
 
   // Sessions таблица (активные сессии/комнаты)
   await db.exec(`

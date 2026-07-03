@@ -73,7 +73,6 @@ export default function LiveQuestion() {
     return () => clearInterval(intervalId);
   }, [timer, isOrganizer, triggerNextQuestion]);
 
-  // ЕДИНОЕ соединение Socket.IO на всю сессию
   useEffect(() => {
     if (!session?.sessionId) return;
 
@@ -160,26 +159,87 @@ export default function LiveQuestion() {
                 {timer}
               </div>
 
+              {currentQ.imageUrl && (
+                <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                  <img 
+                    src={currentQ.imageUrl} 
+                    alt="Иллюстрация к вопросу" 
+                    style={{ maxWidth: '100%', maxHeight: '250px', borderRadius: '8px', objectFit: 'contain' }} 
+                  />
+                </div>
+              )}
+
               <h2 className="live__question">{questionText}</h2>
 
               <div className="live__ans-grid">
-                {options.slice(0, 4).map((opt, i) => (
-                  <button
-                    key={opt.id || i}
-                    type="button"
-                    className={[
-                      'ans-tile',
-                      TILE_CLASSES[i % 4],
-                      chosen === opt.id ? 'ans-tile--chosen' : '',
-                      chosen !== null && chosen !== opt.id ? 'ans-tile--dim' : '',
-                      isOrganizer ? 'ans-tile--disabled' : ''
-                    ].filter(Boolean).join(' ')}
-                    onClick={() => handleAnswer(opt.id)}
-                    disabled={isOrganizer || chosen !== null || timer === 0}
-                  >
-                    {opt.text}
-                  </button>
-                ))}
+                {options.slice(0, 4).map((opt, i) => {
+                  
+                  const isUrlText = opt.text && /^https?:\/\//i.test(opt.text.trim());
+                  const showText  = opt.text && !(opt.imageUrl && isUrlText);
+
+                  return (
+                    <button
+                      key={opt.id || i}
+                      type="button"
+                      className={[
+                        'ans-tile',
+                        TILE_CLASSES[i % 4],
+                        chosen === opt.id ? 'ans-tile--chosen' : '',
+                        chosen !== null && chosen !== opt.id ? 'ans-tile--dim' : '',
+                        isOrganizer ? 'ans-tile--disabled' : ''
+                      ].filter(Boolean).join(' ')}
+                      onClick={() => handleAnswer(opt.id)}
+                      disabled={isOrganizer || chosen !== null || timer === 0}
+                      style={{
+                        display:        'flex',
+                        flexDirection:  'column',
+                        alignItems:     'center',
+                        justifyContent: opt.imageUrl ? 'flex-start' : 'center',
+                        minHeight:      '140px',
+                        padding:        opt.imageUrl ? '8px' : '12px 16px',
+                        overflow:       'hidden',
+                        boxSizing:      'border-box',
+                      }}
+                    >
+                      {opt.imageUrl && (
+                        <div style={{
+                          width:    '100%',
+                          height:   showText ? '95px' : '120px',
+                          flexShrink: 0,
+                          marginBottom: showText ? '6px' : 0,
+                        }}>
+                          <img
+                            src={opt.imageUrl}
+                            alt=""
+                            style={{
+                              width:        '100%',
+                              height:       '100%',
+                              objectFit:    'cover',
+                              borderRadius: '6px',
+                              display:      'block',
+                            }}
+                            onError={e => { e.target.parentElement.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+                      {showText && (
+                        <span style={{
+                          fontSize:          opt.imageUrl ? '0.82rem' : 'inherit',
+                          fontWeight:        opt.imageUrl ? '600' : 'inherit',
+                          textAlign:         'center',
+                          overflow:          'hidden',
+                          display:           '-webkit-box',
+                          WebkitLineClamp:   opt.imageUrl ? 2 : 4,
+                          WebkitBoxOrient:   'vertical',
+                          wordBreak:         'break-word',
+                          lineHeight:        '1.3',
+                        }}>
+                          {opt.text}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
 
               <p className="live__count">

@@ -3,24 +3,25 @@ import { getDb } from '../db/index.js';
 /**
  * POST /api/quizzes/:quizId/questions
  * Добавить вопрос к квизу
- * Body: { type, text, imageUrl?, options: [{text, isCorrect}, ...] }
+ * Body: { type, text, imageUrl, options: [{text, isCorrect}, ...] }
  */
 export async function createQuestion(req, res) {
   try {
     const { quizId } = req.params;
     const { type, text, imageUrl, options } = req.body;
 
-    if (!text || !options || options.length < 2) {
-      return res.status(400).json({ message: 'Вопрос и минимум 2 варианта обязательны' });
+    if ((!text || !text.trim()) && (!imageUrl || !imageUrl.trim())) {
+      return res.status(400).json({ message: 'Добавьте текст или изображение вопроса' });
     }
-
+    if (!options || options.length < 2) {
+      return res.status(400).json({ message: 'Минимум 2 варианта ответа' });
+    }
     if (!options.some(o => o.isCorrect)) {
       return res.status(400).json({ message: 'Укажите правильный ответ' });
     }
 
     const db = getDb();
 
-    // Проверить, что квиз существует и принадлежит пользователю
     const quiz = await db.get(
       'SELECT * FROM quizzes WHERE id = ? AND organizer_id = ?',
       [quizId, req.user.id]
@@ -30,14 +31,12 @@ export async function createQuestion(req, res) {
       return res.status(404).json({ message: 'Квиз не найден' });
     }
 
-    // Получить порядок последнего вопроса
     const last = await db.get(
       'SELECT MAX(question_order) as max_order FROM questions WHERE quiz_id = ?',
       [quizId]
     );
     const questionOrder = (last.max_order || 0) + 1;
 
-    // Создать вопрос
     const qResult = await db.run(
       `INSERT INTO questions (quiz_id, type, text, image_url, question_order)
        VALUES (?, ?, ?, ?, ?)`,
@@ -46,23 +45,30 @@ export async function createQuestion(req, res) {
 
     const questionId = qResult.lastID;
 
-    // Добавить варианты ответов
+    const savedOptions = [];
     for (let i = 0; i < options.length; i++) {
       const opt = options[i];
-      await db.run(
-        `INSERT INTO answers (question_id, text, is_correct, answer_order)
-         VALUES (?, ?, ?, ?)`,
-        [questionId, opt.text, opt.isCorrect ? 1 : 0, i]
+      const aResult = await db.run(
+        `INSERT INTO answers (question_id, text, is_correct, answer_order, image_url)
+         VALUES (?, ?, ?, ?, ?)`,
+        [questionId, opt.text || '', opt.isCorrect ? 1 : 0, i, opt.imageUrl || null]
       );
+      savedOptions.push({
+        id:        aResult.lastID,
+        text:      opt.text,
+        imageUrl:  opt.imageUrl || '',
+        isCorrect: !!opt.isCorrect,
+      });
     }
 
     res.status(201).json({
-      id: questionId,
+      id:       questionId,
       quizId,
-      type,
-      text,
-      options,
-      order: questionOrder,
+      type:     type || 'text',
+      text:     text || '',
+      imageUrl: imageUrl || '',
+      options:  savedOptions,
+      order:    questionOrder,
     });
   } catch (err) {
     console.error('CreateQuestion error:', err);
@@ -81,31 +87,25 @@ export async function updateQuestion(req, res) {
 
     const db = getDb();
 
-    // Проверить права
     const quiz = await db.get(
       'SELECT * FROM quizzes WHERE id = ? AND organizer_id = ?',
       [quizId, req.user.id]
     );
-    if (!quiz) {
-      return res.status(404).json({ message: 'Квиз не найден' });
-    }
+    if (!quiz) return res.status(404).json({ message: 'Квиз не найден' });
 
-    // Обновить вопрос
     await db.run(
       `UPDATE questions SET type = ?, text = ?, image_url = ? WHERE id = ? AND quiz_id = ?`,
-      [type, text, imageUrl || null, questionId, quizId]
+      [type || 'text', text || '', imageUrl || null, questionId, quizId]
     );
 
-    // Обновить ответы — удалить старые и добавить новые
     if (options) {
       await db.run('DELETE FROM answers WHERE question_id = ?', [questionId]);
-
       for (let i = 0; i < options.length; i++) {
         const opt = options[i];
         await db.run(
-          `INSERT INTO answers (question_id, text, is_correct, answer_order)
-           VALUES (?, ?, ?, ?)`,
-          [questionId, opt.text, opt.isCorrect ? 1 : 0, i]
+          `INSERT INTO answers (question_id, text, is_correct, answer_order, image_url)
+           VALUES (?, ?, ?, ?, ?)`,
+          [questionId, opt.text || '', opt.isCorrect ? 1 : 0, i, opt.imageUrl || null]
         );
       }
     }
@@ -126,7 +126,6 @@ export async function deleteQuestion(req, res) {
     const { quizId, questionId } = req.params;
     const db = getDb();
 
-    // Проверить права
     const quiz = await db.get(
       'SELECT * FROM quizzes WHERE id = ? AND organizer_id = ?',
       [quizId, req.user.id]

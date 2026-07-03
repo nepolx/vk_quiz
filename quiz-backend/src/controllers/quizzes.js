@@ -12,7 +12,6 @@ export async function getQuizzes(req, res) {
       [req.user.id]
     );
 
-    // Для каждого квиза получить количество вопросов
     for (const quiz of quizzes) {
       try {
         quiz.categories = quiz.description ? JSON.parse(quiz.description) : [];
@@ -48,29 +47,44 @@ export async function getQuiz(req, res) {
       return res.status(404).json({ message: 'Квиз не найден' });
     }
 
-    // Распаковываем строку JSON из description в массив categories для фронтенда
     try {
       quiz.categories = quiz.description ? JSON.parse(quiz.description) : [];
     } catch (e) {
       quiz.categories = [];
     }
 
-    // Получить все вопросы
-    const questions = await db.all(
+    const rawQuestions = await db.all(
       'SELECT * FROM questions WHERE quiz_id = ? ORDER BY question_order',
       [id]
     );
 
-    // Для каждого вопроса получить ответы
-    for (const q of questions) {
+    const mappedQuestions = [];
+    for (const q of rawQuestions) {
       const answers = await db.all(
-        'SELECT id, text, is_correct, answer_order FROM answers WHERE question_id = ? ORDER BY answer_order',
+        `SELECT id, text, is_correct, answer_order, image_url
+         FROM answers WHERE question_id = ? ORDER BY answer_order`,
         [q.id]
       );
-      q.options = answers;
+
+      mappedQuestions.push({
+        id:       q.id,
+        type:     q.type,
+        text:     q.text,
+        imageUrl: q.image_url || '',   
+        order:    q.question_order,
+        options:  answers.map(a => ({
+          id:        a.id,
+          text:      a.text,
+          imageUrl:  a.image_url || '',  
+          isCorrect: !!a.is_correct,
+        })),
+      });
     }
 
-    res.json({ ...quiz, questions });
+    res.json({
+      ...quiz,
+      questions: mappedQuestions,
+    });
   } catch (err) {
     console.error('GetQuiz error:', err);
     res.status(500).json({ message: 'Ошибка сервера' });
@@ -120,7 +134,7 @@ export async function createQuiz(req, res) {
 
 /**
  * PUT /api/quizzes/:id
- * Обновить квиз (только черновики)
+ * Обновить квиз 
  */
 export async function updateQuiz(req, res) {
   try {
@@ -129,7 +143,6 @@ export async function updateQuiz(req, res) {
 
     const db = getDb();
 
-    // Проверить, что это черновик и принадлежит пользователю
     const quiz = await db.get(
       'SELECT * FROM quizzes WHERE id = ? AND organizer_id = ?',
       [id, req.user.id]
@@ -167,7 +180,6 @@ export async function updateQuiz(req, res) {
 
 /**
  * DELETE /api/quizzes/:id
- * Удалить квиз (только черновики)
  */
 export async function deleteQuiz(req, res) {
   try {
@@ -181,10 +193,6 @@ export async function deleteQuiz(req, res) {
 
     if (!quiz) {
       return res.status(404).json({ message: 'Квиз не найден' });
-    }
-
-    if (quiz.status !== 'draft') {
-      return res.status(400).json({ message: 'Можно удалять только черновики' });
     }
 
     await db.run('DELETE FROM quizzes WHERE id = ?', [id]);

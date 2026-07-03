@@ -7,8 +7,8 @@ const EMPTY_QUESTION = () => ({
   text: '',
   imageUrl: '',
   options: [
-    { id: 1, text: '', isCorrect: false },
-    { id: 2, text: '', isCorrect: false },
+    { id: 1, text: '', imageUrl: '', isCorrect: false },
+    { id: 2, text: '', imageUrl: '', isCorrect: false },
   ],
 });
 
@@ -59,40 +59,30 @@ export function QuizProvider({ children }) {
   const addQuestion = () => {
     const next = EMPTY_QUESTION();
     setQuestions(prev => [...prev, next]);
-    setCurrentIdx(questions.length);
+    setCurrentIdx(prev => prev + 1);
   };
 
   const goToQuestion = (idx) => {
     if (idx >= 0 && idx < questions.length) setCurrentIdx(idx);
   };
 
-  // МЕТОД ДЛЯ СИНХРОНИЗАЦИИ ВОПРОСОВ ИЗ БАЗЫ ДАННЫХ
   const setLoadedQuiz = (loadedSettings, loadedQuestions) => {
-    setSettings(prev => ({ 
-      ...prev, 
-      name: loadedSettings.name || '',
-      timePerQuestion: loadedSettings.time_per_question ?? loadedSettings.timePerQuestion ?? 30,
-      maxParticipants: loadedSettings.max_participants ?? loadedSettings.maxParticipants ?? 30
-    }));
-    
-    const finalQuestions = loadedQuestions && loadedQuestions.length > 0 
-      ? loadedQuestions.map(q => ({
-          ...q,
-          text: q.text || '',
-          type: q.type || 'text',
-          imageUrl: q.image_url || q.imageUrl || '', 
-          options: (q.options || q.answers || []).map(opt => ({
-            ...opt,
-            text: opt.text || '',
-            isCorrect: !!(opt.is_correct ?? opt.isCorrect ?? opt.correct) 
-          }))
-        }))
-      : [EMPTY_QUESTION()];
-      
-    setQuestions(finalQuestions);
-    
-    // открываем самый последний сохранённый вопрос
-    setCurrentIdx(finalQuestions.length - 1);
+    setSettings(prev => ({ ...prev, ...loadedSettings }));
+    setQuestions(loadedQuestions);
+    setCurrentIdx(0);
+  };
+
+  const prepareForEdit = (quizId, loadedSettings, loadedQuestions) => {
+    setCurrentQuizId(quizId);
+    setSettings(prev => ({ ...prev, ...loadedSettings }));
+
+    if (loadedQuestions.length === 0) {
+      setQuestions([EMPTY_QUESTION()]);
+      setCurrentIdx(0);
+    } else {
+      setQuestions([...loadedQuestions, EMPTY_QUESTION()]);
+      setCurrentIdx(loadedQuestions.length - 1); // последний заполненный
+    }
   };
 
   const startSession = async (quizId) => {
@@ -125,7 +115,7 @@ export function QuizProvider({ children }) {
       updateCurrentQuestion, addQuestion, goToQuestion,
       session, setSession, startSession, joinSession,
       currentQuizId, setCurrentQuizId,
-      setLoadedQuiz, 
+      setLoadedQuiz, prepareForEdit,
       resetQuiz,
       totalQuestions: questions.length,
     }}>

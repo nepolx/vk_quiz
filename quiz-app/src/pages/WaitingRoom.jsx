@@ -64,11 +64,12 @@ export default function WaitingRoom() {
           id: q.id,
           type: q.type,
           text: q.text,
-          imageUrl: q.image_url,
+          imageUrl: q.imageUrl || q.image_url || '',
           options: (q.options || []).map(o => ({
             id: o.id,
             text: o.text,
-            isCorrect: !!o.is_correct,
+            imageUrl:  o.imageUrl  || o.image_url  || '',
+            isCorrect: o.isCorrect ?? !!o.is_correct,
           })),
         }));
         setLoadedQuiz(

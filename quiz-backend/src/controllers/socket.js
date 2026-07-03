@@ -18,24 +18,20 @@ export function initSocket(httpServer) {
   io.on('connection', (socket) => {
     console.log(`[Socket.IO] Успешное подключение: ${socket.id}`);
 
-    // Событие: Вход в комнату ожидания квиза
     socket.on('join_room', async ({ sessionId, userNick }) => {
       if (!sessionId) return;
       
       const roomName = `room_${sessionId}`;
       socket.join(roomName);
       
-      // Сохраняем метаданные прямо в объекте сокета
       socket.sessionId = sessionId;
       socket.userNick = userNick;
 
       console.log(`[Socket.IO] Пользователь ${userNick || 'Аноним'} вошел в комнату сессии: ${roomName}`);
 
-      // Вызываем обновление списка участников для всех в комнате
       await broadcastParticipants(sessionId);
     });
 
-    // Событие: Отключение клиента (закрытие вкладки, дисконнект)
     socket.on('disconnect', async () => {
       console.log(`[Socket.IO] Клиент отключился: ${socket.id}`);
       if (socket.sessionId) {
@@ -47,9 +43,6 @@ export function initSocket(httpServer) {
   return io;
 }
 
-/**
- * Геттер текущего инстанса io для использования в контроллерах Express
- */
 export function getIo() {
   if (!io) {
     throw new Error("Socket.IO не инициализирован!");
@@ -65,7 +58,6 @@ export async function broadcastParticipants(sessionId) {
     const db = getDb();
     if (!db) return;
     
-    // Запрос полностью аналогичен getParticipants, берем только существующие поля
     const rows = await db.all(
       `SELECT sp.id, u.nick 
        FROM session_participants sp

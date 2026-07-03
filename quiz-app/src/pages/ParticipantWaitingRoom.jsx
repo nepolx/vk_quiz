@@ -52,14 +52,13 @@ export default function ParticipantWaitingRoom() {
       navigate('/quiz/live');
     });
 
-    // Если организатор закрыл сессию до старта
     socket.on('session_terminated', () => {
       setError('Организатор закрыл комнату.');
       setTimeout(() => navigate('/'), 3000);
     });
 
     return () => {
-      socket.disconnect(); // Чистим соединение при размонтировании
+      socket.disconnect(); 
     };
   }, [session, navigate, setLoadedQuiz]);
 

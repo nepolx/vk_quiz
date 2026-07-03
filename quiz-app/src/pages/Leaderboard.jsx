@@ -5,8 +5,8 @@ import { useQuiz } from '../context/QuizContext';
 import { sessions } from '../api';
 
 const PODIUM_ORDER = [
-  { barClass: 'podium__bar--2', emoji: '🥈' },
   { barClass: 'podium__bar--1', emoji: '🥇' },
+  { barClass: 'podium__bar--2', emoji: '🥈' },
   { barClass: 'podium__bar--3', emoji: '🥉' },
 ];
 
@@ -44,7 +44,6 @@ export default function Leaderboard() {
       .finally(() => setLoading(false));
   }, [session?.sessionId]);
 
-  // Пьедестал: порядок 2-й, 1-й, 3-й
   const top3 = [players[1], players[0], players[2]].filter(Boolean);
 
   const handleHome = () => {
@@ -77,7 +76,7 @@ export default function Leaderboard() {
 
             {!loading && !error && players.length > 0 && (
               <>
-                {top3.length >= 2 && (
+                {top3.length >= 1 && (
                   <div className="podium">
                     {top3.map((p, i) => (
                       <div key={p.rank} className="podium__place">

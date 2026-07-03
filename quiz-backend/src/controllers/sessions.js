@@ -120,7 +120,7 @@ export async function startQuiz(req, res) {
 
     for (let q of questions) {
       q.options = await db.all(
-        'SELECT id, text FROM answers WHERE question_id = ? ORDER BY answer_order ASC',
+        'SELECT id, text, image_url as imageUrl FROM answers WHERE question_id = ? ORDER BY answer_order ASC',
         [q.id]
       );
     }
@@ -270,7 +270,7 @@ async function calcScore(db, sessionId, participantId) {
   let score = 0;
   for (const { question_id } of correctAnswers) {
     // Ранг: на каком месте среди правильно ответивших оказался участник
-    // (сортируем по answered_at — кто раньше, тот выше)
+    // (сорт по answered_at - кто раньше, тот выше)
     const rank = await db.get(
       `SELECT COUNT(*) + 1 as rank FROM user_answers ua
        JOIN answers a ON ua.answer_id = a.id
@@ -293,7 +293,6 @@ async function calcScore(db, sessionId, participantId) {
 
 /**
  * GET /api/sessions/:sessionId/results
- * Получить результаты квиза — одинаковый ответ для организатора и участников
  */
 export async function getResults(req, res) {
   try {
@@ -376,7 +375,6 @@ export async function getParticipants(req, res) {
 
 /**
  * GET /api/sessions/history
- * История участий с реальными очками, местом и точностью
  */
 export async function getHistory(req, res) {
   try {
@@ -395,7 +393,6 @@ export async function getHistory(req, res) {
        JOIN quizzes  q ON s.quiz_id     = q.id
        WHERE sp.user_id = ? 
          AND s.status = 'completed'
-         -- ПРОВЕРКА: у участника должен быть ответ на последний вопрос этого квиза
          AND EXISTS (
            SELECT 1 FROM user_answers ua
            WHERE ua.session_id = s.id 
@@ -421,10 +418,8 @@ export async function getHistory(req, res) {
       );
       const myScore = await calcScore(db, h.session_id, h.participant_id);
 
-      // Место = количество участников с большим счётом + 1
       const myPlace = allScores.filter(s => s > myScore).length + 1;
 
-      // Точность за эту сессию
       const correct = await db.get(
         `SELECT COUNT(*) as count FROM user_answers ua
          JOIN answers a ON ua.answer_id = a.id
@@ -507,7 +502,6 @@ export async function getStats(req, res) {
       totalCorrect  += correct.count;
       totalAnswered += total.count;
 
-      // Победа = 1-е место в сессии
       const myScore = await calcScore(db, p.session_id, p.participant_id);
       const allParticipants = await db.all(
         'SELECT id FROM session_participants WHERE session_id = ?',

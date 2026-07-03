@@ -6,7 +6,7 @@ import { useQuiz } from '../context/QuizContext';
 
 export default function OrganizerDashboard() {
   const navigate = useNavigate();
-  const { resetQuiz, setCurrentQuizId, setLoadedQuiz } = useQuiz();
+  const {resetQuiz, prepareForEdit, setCurrentQuizId } = useQuiz();
   
   const [user, setUser]       = useState(null);
   const [quizzes, setQuizzes] = useState([]);
@@ -15,7 +15,7 @@ export default function OrganizerDashboard() {
   const [completedCount, setCompletedCount]       = useState(0);
   const [totalQuizzes, setTotalQuizzes]           = useState(0);
 
-  // (История лидербордов)
+  // История лидербордов
   const [viewMode, setViewMode]           = useState('list'); 
   const [activeQuiz, setActiveQuiz]       = useState(null);
   const [historySessions, setHistorySessions] = useState([]);
@@ -64,8 +64,7 @@ export default function OrganizerDashboard() {
         
         const data = await quizzesApi.getQuiz(quiz.id); 
         
-        setLoadedQuiz(data, data.questions || []);
-        setCurrentQuizId(quiz.id);
+        prepareForEdit(quiz.id, data, data.questions || []);
         
         navigate('/quiz/editor');
       } catch (err) {
@@ -137,8 +136,7 @@ export default function OrganizerDashboard() {
         
         const data = await quizzesApi.getQuiz(activeQuiz.id);
         
-        setLoadedQuiz(data, data.questions || []);
-        setCurrentQuizId(activeQuiz.id);
+        prepareForEdit(activeQuiz.id, data, data.questions || []);
         
         navigate('/quiz/editor');
       } catch (err) {
@@ -191,7 +189,7 @@ export default function OrganizerDashboard() {
 
             <div className="divider" />
 
-            {/* РЕЖИМ 1: СПИСОК КВИЗОВ */}
+            {/* СПИСОК КВИЗОВ */}
             {viewMode === 'list' && (
               <>
                 <h3 className="text-center mb-16">Мои квизы</h3>
@@ -225,7 +223,7 @@ export default function OrganizerDashboard() {
               </>
             )}
 
-            {/* РЕЖИМ 2: ИСТОРИЯ ИГР */}
+            {/* ИСТОРИЯ ИГР */}
             {viewMode === 'history' && (
               <>
                 <div className="flex justify-between items-center mb-16">

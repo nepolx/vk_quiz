@@ -4,6 +4,7 @@ import Nav from '../components/Nav';
 import { useQuiz } from '../context/QuizContext';
 import { sessions, quizzes as quizzesApi } from '../api';
 import { io } from 'socket.io-client';
+import '../styles/WaitingRoom.css'
 
 const initials = (name) =>
   name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);

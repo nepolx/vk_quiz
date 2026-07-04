@@ -1,0 +1,71 @@
+.join-box {
+  background: var(--color-input-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-32);
+  text-align: center;
+  margin-bottom: var(--sp-32);
+}
+.join-box__icon {
+  font-size: 40px;
+  margin-bottom: var(--sp-16);
+}
+.join-box__title {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--sp-16);
+  color: var(--color-pink-dark);
+}
+.join-code-row {
+  display: flex;
+  gap: var(--sp-8);
+}
+.join-code-row .input { flex: 1; text-align: center; font-size: var(--fs-h3); font-weight: var(--fw-semibold); letter-spacing: 3px; }
+
+/* History items */
+.history-list { display: flex; flex-direction: column; gap: var(--sp-12); }
+.history-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-16);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: var(--sp-16) var(--sp-20);
+}
+.history-item__icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--color-pink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.history-item__title { font-size: var(--fs-body); font-weight: var(--fw-semibold); margin-bottom: 2px; }
+.history-item__meta  { font-size: var(--fs-small); color: var(--color-muted); }
+.history-item__score {
+  margin-left: auto;
+  text-align: right;
+  flex-shrink: 0;
+}
+.history-item__pts   { font-size: var(--fs-h3); font-weight: var(--fw-bold); color: var(--color-pink-dark); }
+.history-item__place { font-size: var(--fs-small); color: var(--color-muted); }
+
+/* Participant stat trio */
+.stat-trio {
+  display: flex;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--sp-32);
+}
+.stat-trio__item {
+  flex: 1;
+  padding: var(--sp-16);
+  text-align: center;
+  border-right: 1.5px solid var(--color-border);
+}
+.stat-trio__item:last-child { border-right: none; }
+.stat-trio__num   { font-size: var(--fs-h2); font-weight: var(--fw-bold); display: block; }
+.stat-trio__label { font-size: var(--fs-small); color: var(--color-muted); }
+

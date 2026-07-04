@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import '../styles/Leaderboard.css';
 import { useNavigate } from 'react-router-dom';
 import Nav from '../components/Nav';
 import { useQuiz } from '../context/QuizContext';

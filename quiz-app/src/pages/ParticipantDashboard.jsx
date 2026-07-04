@@ -4,6 +4,7 @@ import Nav from '../components/Nav';
 import { sessions, auth } from '../api';
 import { useQuiz } from '../context/QuizContext';
 import { IconWarn } from '../components/Icons';
+import '../styles/ParticipantDashboard.css'
 
 export default function ParticipantDashboard() {
   const navigate = useNavigate();

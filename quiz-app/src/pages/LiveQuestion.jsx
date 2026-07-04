@@ -4,6 +4,7 @@ import Nav from '../components/Nav';
 import { useQuiz } from '../context/QuizContext';
 import { sessions } from '../api';
 import { io } from 'socket.io-client';
+import '../styles/LiveQuestion.css'
 
 const TILE_CLASSES = ['ans-tile--a', 'ans-tile--b', 'ans-tile--c', 'ans-tile--d'];
 

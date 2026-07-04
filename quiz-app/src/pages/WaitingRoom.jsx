@@ -89,7 +89,7 @@ export default function WaitingRoom() {
 
   return (
     <>
-      <Nav label="комната ожидания" />
+      <Nav label="" />
       <div className="page">
         <div className="page__inner page__inner--wide">
           <div className="card">

@@ -163,7 +163,7 @@ export default function OrganizerDashboard() {
 
   return (
     <>
-      <Nav label={viewMode === 'history' ? "История лидербордов" : ""} />
+      <Nav label="" />
       <div className="page page--top">
         <div className="page__inner">
           <div className="card">

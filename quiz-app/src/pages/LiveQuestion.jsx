@@ -149,7 +149,7 @@ export default function LiveQuestion() {
 
   return (
     <>
-      <Nav label={isOrganizer ? "Панель Организатора (Управление)" : "Экран Игрока"} />
+      <Nav label="" />
       <div className="page">
         <div className="page__inner page__inner--wide">
           <div className="card">
